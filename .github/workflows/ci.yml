@@ -1,0 +1,43 @@
+name: ci
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+
+concurrency:
+  # Allow only one workflow per any non-`main` branch.
+  group: ${{ github.workflow }}-${{ github.ref_name }}-${{ github.ref_name == 'main' && github.sha || 'anysha' }}
+  cancel-in-progress: false
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+
+jobs:
+    code-check:
+      name: Code Check
+      runs-on: macos-12
+      steps:
+        - name: checkout repo source code
+          uses: actions/checkout@v4
+
+        - name: setup rust
+          uses: actions-rs/toolchain@v1
+          with:
+              toolchain: nightly
+              profile: minimal
+              override: true
+              components: rustfmt, clippy
+
+        - name: basic code check
+          uses: actions-rs/cargo@v1
+          with:
+            command: check
+            args: --all-targets
+
+        - name: format check
+          run: cargo fmt -- --check 
+
+        - name: tests
+          run: cargo test -- --show-output
