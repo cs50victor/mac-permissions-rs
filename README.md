@@ -1,0 +1,39 @@
+# Mac permissions api
+
+- Location Services
+- Calendars
+- Contacts
+- Files & Folders
+ - "limited version of full disk access. only shows access to certain high level folder like 'Downlads', 'Desktop', 'iCloud Drive' etc"
+- Full Disk Access
+ - "Allow the application to access data like Mail, Messages, Safari, Home, Time Machine Backups, and certain admin settings for all users on this mac"
+- Homekit
+- ".. Requested access to homekit data"
+- Media & Apple Music
+- Passkeys Access for Web Browsers
+- Photos
+- Reminders
+ - "Applications that request access to your reminders will appear here."
+- Accessibility
+ - "Allow the application to control your computer."
+- App Management
+ - "Allow the application to update or delete other applications" 
+- Automation
+ - "Allow the application to control other applications. This will provide access to documents and data in those applications, and to perform actions within them" 
+- Bluetooth
+- Camera
+- Developer Tools
+- ~~Focus~~
+- Input Monitoring
+ - "Allow the application below to monitor input from your keyboard even while using other applications." 
+- Local Network
+ - "Allow the application to find and comminicate with devices on your local network"
+- Microphone
+- Motion & Fitness
+  - "..access to your motion and fitness activity" 
+- Remote Desktop
+ - "Applications that have requested Remote Desktop access to the contents of your screen and audio will appear here."  
+- Screen & System Audio Recording
+- Speech Recognition
+  - "Apple recoognition sends recorded voice to Apple to process your requests."  
+
