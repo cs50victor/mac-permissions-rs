@@ -1,62 +1,84 @@
-#![allow(non_snake_case)]
+use objc2::runtime::NSObject;
+use objc2::{extern_class, extern_methods, ClassType};
+use objc2::{msg_send, sel};
+use std::ffi::{CStr, CString};
 
-/// Raw C-bindings for some of Apple's accessibility API. See [Apple's documentation](https://developer.apple.com/documentation/applicationservices/axuielement_h?language=objc#overview)
-pub mod raw {
-    use core_foundation::string::CFStringRef;
-    use core_foundation_sys::base::Boolean;
-    use core_foundation_sys::dictionary::CFDictionaryRef;
-
-    extern "C" {
-        pub static kAXTrustedCheckOptionPrompt: CFStringRef;
-
-        pub fn AXIsProcessTrusted() -> Boolean;
-        pub fn AXIsProcessTrustedWithOptions(theDict: CFDictionaryRef) -> Boolean;
-
-    }
+#[derive(Debug, PartialEq)]
+pub enum PermissionStatus {
+    NotDetermined,
+    Denied,
+    Authorized,
+    Restricted,
+    Limited,
 }
 
-/// Wrapped bindings to some of Apple's accessibility client API.
-pub mod accessibility {
-    use core_foundation::base::TCFType;
-    use core_foundation::boolean::CFBoolean;
-    use core_foundation::dictionary::CFDictionary;
-    use core_foundation::string::CFString;
-
-    use crate::raw::{
-        kAXTrustedCheckOptionPrompt, AXIsProcessTrusted, AXIsProcessTrustedWithOptions,
-    };
-
-    /// Checks whether or not this application is a trusted accessibility client.
-    pub fn application_is_trusted() -> bool {
-        unsafe {
-            return AXIsProcessTrusted() != 0;
-        }
-    }
-
-    /// Same as [application_is_trusted], but also shows the user a prompt asking
-    /// them to allow accessibility API access if it hasn't already been given.
-    pub fn application_is_trusted_with_prompt() -> bool {
-        unsafe {
-            let option_prompt = CFString::wrap_under_get_rule(kAXTrustedCheckOptionPrompt);
-            let dict: CFDictionary<CFString, CFBoolean> =
-                CFDictionary::from_CFType_pairs(&[(option_prompt, CFBoolean::true_value())]);
-            return AXIsProcessTrustedWithOptions(dict.as_concrete_TypeRef()) != 0;
+impl From<&str> for PermissionStatus {
+    fn from(status: &str) -> Self {
+        match status {
+            "not determined" => PermissionStatus::NotDetermined,
+            "denied" => PermissionStatus::Denied,
+            "authorized" => PermissionStatus::Authorized,
+            "restricted" => PermissionStatus::Restricted,
+            "limited" => PermissionStatus::Limited,
+            _ => PermissionStatus::NotDetermined,
         }
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use crate::accessibility::{application_is_trusted, application_is_trusted_with_prompt};
+#[derive(Debug, Clone, Copy)]
+pub enum Permission {
+    // Location,
+    Calendar,
+    Contacts,
+    // FilesAndFolders,
+    FullDiskAccess,
+    // Homekit,
+    // MediaAndAppleMusic,
+    // Passkeys,
+    Photos,
+    Reminders,
+    Accessibility,
+    // AppManagement,
+    // Automation
+    Bluetooth,
+    Camera,
+    // DeveloperTools,
+    InputMonitoring,
+    // LocalNetwork,
+    Microphone,
+    // MotionAndFitness,
+    // RemoteDesktop,
+    ScreenCapture,
+    SpeechRecognition,
+}
 
-    #[test]
-    fn test_application_is_trusted() {
-        assert_eq!(false, application_is_trusted());
-    }
-
-    #[test]
-    fn test_application_is_trusted_with_prompt() {
-        assert_eq!(false, application_is_trusted_with_prompt());
+impl Permission {
+    fn to_str(&self) -> &'static str {
+        match self {
+            Permission::Calendar => "calendar",
+            Permission::Contacts => "contacts",
+            Permission::FullDiskAccess => "full-disk-access",
+            Permission::Photos => "photos",
+            Permission::Reminders => "reminders",
+            Permission::Accessibility => "accessibility",
+            Permission::Bluetooth => "bluetooth",
+            Permission::Camera => "camera",
+            Permission::InputMonitoring => "input-monitoring",
+            Permission::Microphone => "microphone",
+            Permission::ScreenCapture => "screen-capture",
+            Permission::SpeechRecognition => "speech-recognition",
+        }
     }
 }
 
+extern "C" {
+    fn GetAuthStatus(type_: *const std::os::raw::c_char) -> *const std::os::raw::c_char;
+}
+
+pub fn check_permission(permission: Permission) -> anyhow::Result<String> {
+    let c_type = CString::new(permission.to_str())?;
+    unsafe {
+        let result = GetAuthStatus(c_type.as_ptr());
+        Ok(CStr::from_ptr(result).to_string_lossy().into_owned())
+    }
+}
