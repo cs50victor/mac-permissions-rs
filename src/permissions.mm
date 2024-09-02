@@ -1,4 +1,5 @@
 #include <string>
+#include <cstring>
 // Apple APIs
 #import <AVFoundation/AVFoundation.h>
 #import <AppKit/AppKit.h>
@@ -13,7 +14,6 @@
 #import <Speech/Speech.h>
 #import <StoreKit/StoreKit.h>
 #import <pwd.h>
-
 
 /***** HELPER FUNCTIONS *****/
 
@@ -442,4 +442,14 @@ std::string GetAuthStatus(const std::string &type) {
   }
 
   return auth_status;
+}
+
+
+extern "C" {
+    const char* GetAuthStatus(const char* type) {
+        std::string result = ::GetAuthStatus(std::string(type));
+        char* cstr = new char[result.length() + 1];
+        std::strcpy(cstr, result.c_str());
+        return cstr;
+    }
 }

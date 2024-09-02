@@ -1,6 +1,3 @@
-use objc2::runtime::NSObject;
-use objc2::{extern_class, extern_methods, ClassType};
-use objc2::{msg_send, sel};
 use std::ffi::{CStr, CString};
 
 #[derive(Debug, PartialEq)]
@@ -65,7 +62,7 @@ impl Permission {
             Permission::Camera => "camera",
             Permission::InputMonitoring => "input-monitoring",
             Permission::Microphone => "microphone",
-            Permission::ScreenCapture => "screen-capture",
+            Permission::ScreenCapture => "screen",
             Permission::SpeechRecognition => "speech-recognition",
         }
     }
@@ -80,5 +77,23 @@ pub fn check_permission(permission: Permission) -> anyhow::Result<String> {
     unsafe {
         let result = GetAuthStatus(c_type.as_ptr());
         Ok(CStr::from_ptr(result).to_string_lossy().into_owned())
+    }
+}
+
+pub fn has_permission(permission: Permission) -> bool {
+    check_permission(permission).unwrap_or("not determined".to_owned()) == "authorized"
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_application_has_calendar_permission() {
+        let x = check_permission(Permission::Calendar);
+        println!("--------->{:?}", x);
+        assert!(x.is_ok() && x.unwrap() != "authorized");
+
+        assert!(!has_permission(Permission::Calendar));
     }
 }

@@ -13,15 +13,17 @@ fn main() {
     println!("cargo:rustc-link-lib=framework=Speech");
     println!("cargo:rustc-link-lib=framework=StoreKit");
 
-    std::env::set_var("MACOSX_DEPLOYMENT_TARGET", "10.13");
+    // std::env::set_var("MACOSX_DEPLOYMENT_TARGET", "10.13");
 
     cc::Build::new()
         .file("src/permissions.mm")
         .cpp(true)
         .std("c++14")
-        .cpp_link_stdlib("libc++")
+        // .cpp_link_stdlib("libc++")
         .extra_warnings(false)
         .compile("permissions");
+
+    println!("cargo:rerun-if-changed=src/permissions.mm");
 }
 
 #[cfg(not(target_os = "macos"))]
